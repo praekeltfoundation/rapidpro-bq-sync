@@ -22,4 +22,3 @@ jobs:
         run: |
           flake8
           black --check .
-          isort -c -rc .

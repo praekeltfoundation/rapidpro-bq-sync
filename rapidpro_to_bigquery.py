@@ -7,7 +7,7 @@ from google.oauth2 import service_account
 from sentry_sdk import init
 from temba_client.v2 import TembaClient
 
-from settings import (
+from config.settings import (
     CONTACT_FIELDS,
     FLOW_RUN_VALUES_FIELDS,
     FLOW_RUNS_FIELDS,

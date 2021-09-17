@@ -23,6 +23,3 @@ jobs:
           flake8
           black --check .
           isort -c -rc .
-      - name: Test
-        run: |
-          py.test

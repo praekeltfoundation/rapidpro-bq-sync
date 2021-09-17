@@ -4,6 +4,7 @@ from datetime import datetime
 from google.api_core.exceptions import BadRequest
 from google.cloud import bigquery
 from google.oauth2 import service_account
+from sentry_sdk import init
 from temba_client.v2 import TembaClient
 
 from settings import (
@@ -15,6 +16,9 @@ from settings import (
     GROUP_FIELDS,
     IMPORT_FLOW_DATA,
 )
+
+if "SENTRY_DSN" in os.environ:
+    init(os.environ["SENTRY_DSN"])
 
 BQ_KEY_PATH = os.environ.get("BQ_KEY_PATH", "bigquery/bq_credentials.json")
 BQ_DATASET = os.environ.get("BQ_DATASET", "")

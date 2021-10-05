@@ -42,6 +42,17 @@ def log(text):
     print(f"{timestamp} - {text}")
 
 
+def get_contact_wa_urn(contact):
+    wa_urn = " "
+    for rapidpro_urn in contact.urns:
+        if "whatsapp" in rapidpro_urn:
+            urn = rapidpro_urn.split(":")[1]
+            wa_urn = f"+{urn}"
+        else:
+            wa_urn = "1"
+    return wa_urn
+
+
 def get_groups():
     rapidpro_groups = rapidpro_client.get_groups().all(retry_on_rate_exceed=True)
 
@@ -63,6 +74,7 @@ def get_contacts_and_contact_groups(last_contact_date=None):
         record = {
             "uuid": contact.uuid,
             "modified_on": contact.modified_on.isoformat(),
+            "urn": get_contact_wa_urn(contact),
         }
 
         for group in contact.groups:

@@ -2,6 +2,7 @@ IMPORT_FLOW_DATA = True
 CONTACT_FIELDS = {
     "uuid": "STRING",
     "modified_on": "TIMESTAMP",
+    "urn": "STRING",
 }
 GROUP_CONTACT_FIELDS = {"group_uuid": "STRING", "contact_uuid": "STRING"}
 GROUP_FIELDS = {"name": "STRING", "uuid": "STRING"}

@@ -1,4 +1,4 @@
-FROM praekeltfoundation/python-base
+FROM ghcr.io/praekeltfoundation/python-base-nw:3.10-bullseye
 
 COPY . /app
 

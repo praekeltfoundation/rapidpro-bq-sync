@@ -1,19 +1,25 @@
+import base64
+import hashlib
 import os
 from datetime import datetime
 
 from google.api_core.exceptions import BadRequest
 from google.cloud import bigquery
+from google.cloud.exceptions import NotFound
 from google.oauth2 import service_account
 from sentry_sdk import init
 from temba_client.v2 import TembaClient
 
 from config.settings import (
     CONTACT_FIELDS,
+    CONTACT_GROUP_FILTER,
+    ENABLE_ADDITIONAL_CONTACT_PROPERTIES,
     FLOW_RUN_VALUES_FIELDS,
     FLOW_RUNS_FIELDS,
     FLOWS_FIELDS,
     GROUP_CONTACT_FIELDS,
     GROUP_FIELDS,
+    HASH_URN,
     IMPORT_FLOW_DATA,
 )
 
@@ -42,15 +48,24 @@ def log(text):
     print(f"{timestamp} - {text}")
 
 
-def get_contact_wa_urn(contact):
-    wa_urn = " "
+def hash_string(text):
+    return base64.b64encode(hashlib.sha256(text.encode("utf-8")).digest()).decode(
+        "utf-8"
+    )
+
+
+def get_table_id(table_name):
+    return f"{credentials.project_id}.{BQ_DATASET}.{table_name}"
+
+
+def get_contact_urn(contact):
+    urn = ""
     for rapidpro_urn in contact.urns:
-        if "whatsapp" in rapidpro_urn:
-            urn = rapidpro_urn.split(":")[1]
-            wa_urn = f"+{urn}"
-        else:
-            wa_urn = "1"
-    return wa_urn
+        urn = rapidpro_urn.split(":")[1].lstrip("+")
+        urn = f"+{urn}"
+    if HASH_URN:
+        urn = hash_string(urn)
+    return urn
 
 
 def get_groups():
@@ -64,9 +79,9 @@ def get_groups():
 
 
 def get_contacts_and_contact_groups(last_contact_date=None):
-    rapidpro_contacts = rapidpro_client.get_contacts(after=last_contact_date).all(
-        retry_on_rate_exceed=True
-    )
+    rapidpro_contacts = rapidpro_client.get_contacts(
+        after=last_contact_date, group=CONTACT_GROUP_FILTER
+    ).all(retry_on_rate_exceed=True)
 
     contacts = []
     group_contacts = []
@@ -74,8 +89,12 @@ def get_contacts_and_contact_groups(last_contact_date=None):
         record = {
             "uuid": contact.uuid,
             "modified_on": contact.modified_on.isoformat(),
-            "urn": get_contact_wa_urn(contact),
+            "urn": get_contact_urn(contact),
         }
+
+        if ENABLE_ADDITIONAL_CONTACT_PROPERTIES:
+            record["language"] = contact.language
+            record["created_on"] = contact.created_on.isoformat()
 
         for group in contact.groups:
             group_contacts.append(
@@ -97,6 +116,13 @@ def get_contacts_and_contact_groups(last_contact_date=None):
 
 
 def get_last_record_date(table, field):
+    try:
+        bigquery_client.get_table(get_table_id(table))
+        log(f"Table {table} exists.")
+    except NotFound:
+        log(f"Table {table} is not found.")
+        return
+
     query = f"select EXTRACT(DATETIME from max({field})) from {BQ_DATASET}.{table};"
     for row in bigquery_client.query(query).result():
         if row[0]:

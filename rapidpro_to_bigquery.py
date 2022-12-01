@@ -14,6 +14,7 @@ from config.settings import (
     CONTACT_FIELDS,
     CONTACT_GROUP_FILTER,
     ENABLE_ADDITIONAL_CONTACT_PROPERTIES,
+    FLOW_UUID_FILTER,
     FLOW_RUN_VALUES_FIELDS,
     FLOW_RUNS_FIELDS,
     FLOWS_FIELDS,
@@ -134,6 +135,9 @@ def get_flows():
 
     records = []
     for flow in rapidpro_flows:
+        if FLOW_UUID_FILTER and flow.uuid not in FLOW_UUID_FILTER:
+            continue
+
         records.append(
             {
                 "uuid": flow.uuid,

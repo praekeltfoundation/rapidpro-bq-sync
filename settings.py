@@ -9,6 +9,7 @@ ADDITIONAL_CONTACT_PROPERTIES = False  # language, created_on
 GROUP_CONTACT_FIELDS = {"group_uuid": "STRING", "contact_uuid": "STRING"}
 CONTACT_GROUP_FILTER = None
 GROUP_FIELDS = {"name": "STRING", "uuid": "STRING"}
+FLOW_UUID_FILTER = []
 FLOWS_FIELDS = {"labels": "STRING", "name": "STRING", "uuid": "STRING"}
 FLOW_RUNS_FIELDS = {
     "modified_on": "TIMESTAMP",
